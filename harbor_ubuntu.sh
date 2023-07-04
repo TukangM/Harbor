@@ -9,7 +9,8 @@
 ROOTFS_DIR=/home/container
 
 # Define the URL for the Ubuntu 22.04 base image.
-BASE_IMAGE_URL="https://cdimage.ubuntu.com/ubuntu-base/releases/22.04/release/ubuntu-base-22.04-base-amd64.tar.gz"
+BASE_IMAGE_URL="https://github.com/TukangM/Ptero-VM-JAR/releases/download/lastest/ubuntu.22.04-pterovm.tar.gz"
+PROOT_VERSION="5.3.0"
 
 # Detect the machine architecture.
 ARCH=$(uname -m)
@@ -30,19 +31,21 @@ if [ ! -e $ROOTFS_DIR/.installed ]; then
     # Download the Ubuntu 22.04 base image.
     wget --no-hsts -O /tmp/ubuntu-base-22.04-base-amd64.tar.gz "$BASE_IMAGE_URL"
     # Extract the Ubuntu 22.04 base image.
-    tar -xzf /tmp/ubuntu-base-22.04-base-amd64.tar.gz -C $ROOTFS_DIR
+    tar -xf /tmp/ubuntu-base-22.04-base-amd64.tar.gz -C $ROOTFS_DIR
 fi
 
 #################################
 # Package Installation & Setup #
 #################################
 
-# Customization for your own repository
-# Add any additional steps required to configure your custom repository here.
-
 # Update the package index and install desired packages.
-chroot $ROOTFS_DIR apt-get update
-chroot $ROOTFS_DIR apt-get install -y package1 package2 package3
+echo "nameserver 1.1.1.1" > $ROOTFS_DIR/etc/resolv.conf
+chroot $ROOTFS_DIR apt update
+# chroot $ROOTFS_DIR apt install -y sudo neofetch wget curl iproute2
+
+# Download and install PRoot.
+wget --no-hsts -O $ROOTFS_DIR/usr/local/bin/proot "https://github.com/proot-me/proot/releases/download/v${PROOT_VERSION}/proot-v${PROOT_VERSION}-${ARCH}-static"
+chmod +x $ROOTFS_DIR/usr/local/bin/proot
 
 # Finish up
 if [ ! -e $ROOTFS_DIR/.installed ]; then
@@ -51,7 +54,7 @@ if [ ! -e $ROOTFS_DIR/.installed ]; then
 fi
 
 # Print some useful information to the terminal before entering chroot.
-clear && cat <<EOF
+cat <<EOF
 
   ______          _ _       _     _____ _        _______ ______ _____  
  |  ____|        | (_)     (_)   / ____| |      |__   __|  ____|  __ \ 
@@ -81,15 +84,13 @@ EOF
 ###########################
 # Start PRoot environment
 ###########################
-
-$ROOTFS_DIR/usr/local/bin/proot \
+unset LD_PRELOAD
+$ROOTFS_DIR/usr/local/bin/proot -0 \
 --rootfs="${ROOTFS_DIR}" \
 --link2symlink \
 --kill-on-exit \
---root-id \
 --cwd=/root \
 --bind=/proc \
 --bind=/dev \
 --bind=/sys \
---bind=/tmp \
 /bin/sh
