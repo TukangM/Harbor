@@ -40,7 +40,10 @@ fi
 
 # Update the package index and install desired packages.
 echo "nameserver 1.1.1.1" > $ROOTFS_DIR/etc/resolv.conf
-chroot $ROOTFS_DIR apt update
+chroot $ROOTFS_DIR apt-get update
+chroot $ROOTFS_DIR apt-get -y upgrade
+chroot $ROOTFS_DIR apt-get -y install sudo curl wget hwloc htop nano neofetch python3
+chroot $ROOTFS_DIR curl -o /bin/systemctl https://raw.githubusercontent.com/gdraheim/docker-systemctl-replacement/master/files/docker/systemctl3.py
 # chroot $ROOTFS_DIR apt install -y sudo neofetch wget curl iproute2
 
 # Download and install PRoot.
